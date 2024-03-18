@@ -1,0 +1,20 @@
+version: "3"
+services:
+  app:
+    command: "ptw"
+    volumes:
+      - ./tests:/app/tests:ro
+      - ./src:/app/src:ro
+
+  pgadmin:
+    container_name: horizon-pgadmin
+    image: dpage/pgadmin4
+    depends_on:
+      - db
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_USER=root
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - 5050:80
