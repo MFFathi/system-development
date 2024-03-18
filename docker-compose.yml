@@ -1,6 +1,44 @@
 version: "3"
 services:
     app:
+        container_name: horizon-app
+        restart: always
         build:
             context: .
             target: prod
+        environment:
+            - DB_USER=postgres
+            - DB_PASSWORD=postgres
+            - DB_PORT=5432
+            - DB_NAME= horizon restaurants
+        depends_on:
+            - db
+        ports:
+            - 5000:5000
+    
+    db:
+        container_name: 'horizon-db'
+        image: postgres:16-alpine
+        restart: always
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        ports:
+            - 5432:5432
+        volumes:
+            - horizon-db:/var/lib/postgresql/data
+    pgadmin:
+        container_name: horizon-pgadmin
+        image: dpage/pgadmin4
+        depends_on:
+            - db
+        restart: always
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+            - PGADMIN_DEFAULT_USER=root
+            - PGADMIN_DEFAULT_PASSWORD=root
+        ports:
+            - 5050:80
+volumes:
+    horizon-db:
+        driver: local
