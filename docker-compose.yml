@@ -7,8 +7,8 @@ services:
             context: .
             target: prod
         environment:
-            - DB_USER=postgres
-            - DB_PASSWORD=postgres
+            - DB_USER=postgresql
+            - DB_PASSWORD=Postgresql
             - DB_PORT=5432
             - DB_NAME= horizon restaurants
         depends_on:
