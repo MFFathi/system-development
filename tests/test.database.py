@@ -5,7 +5,7 @@ from src.utils.Database import Database
 
 def test_underlying_pg_connection():
     psycopg2.connect(
-        "dbname=postgres user=postgres password=postgres host=db port=5432")
+        "dbname=postgresql user=postgresql password=Postgresql host=db port=5432")
 
 
 def test_database_connection():

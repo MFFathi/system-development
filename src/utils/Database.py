@@ -50,7 +50,7 @@ class Database:
         cur = cls.cursor()
         cur.execute("DROP SCHEMA public CASCADE;")
         cur.execute("CREATE SCHEMA public;")
-        cur.execute("GRANT ALL ON SCHEMA public TO postgres;")
+        cur.execute("GRANT ALL ON SCHEMA public TO postgresql;")
         cur.execute("GRANT ALL ON SCHEMA public TO public;")
         cls.commit()
 
@@ -76,7 +76,7 @@ class Database:
         """
 
         dbname = cls.dbname
-        cls._create_db_connection("postgres")
+        cls._create_db_connection("postgresql")
         cur = cls.cursor()
 
         cur.execute("SELECT datname FROM pg_database;")
