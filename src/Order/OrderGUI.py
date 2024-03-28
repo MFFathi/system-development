@@ -2,7 +2,7 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import *
 from tkinter import messagebox
-from Order.OrderSQL import OrderSQ
+from Order.OrderSQL import OrderSQL
 
 class OrderGUI:
     
