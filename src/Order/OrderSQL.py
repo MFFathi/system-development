@@ -121,6 +121,51 @@ class OrderSQL():
         
         elif(branch == "Nottingham"):
             Databases.nottingham_db.commit()
+            
+            
+    def updateOrder(order,branch):
+        food_item = order[0]
+        price = order[1]
+        staff = order[2]
+        order_status = order[3]
+        payment_status = order[4]
+        table_number = order[5]
+        order_number = order[6]
+        
+        database = Databases.getDatabase(branch).cursor()
+        sql = "UPDATE orders SET item = %s WHERE order_number = %s"
+        val = (food_item,order_number)
+        database.execute(sql,val)
+
+        sql = "UPDATE orders SET price = %s WHERE order_number = %s"
+        val = (price,order_number)
+        database.execute(sql,val)
+
+        sql = "UPDATE orders SET staff = %s WHERE order_number = %s"
+        val = (staff,order_number)
+        database.execute(sql,val)
+        
+        #Commits Changes To Relevant Database Based On The Branch That The User Is Making Changes To:
+        if (branch == "Birmingham"):
+            Databases.birmingham_db.commit()
+            
+        elif(branch == "Bristol"):
+            Databases.bristol_db.commit()
+        
+        elif(branch == "Cardiff"):
+            Databases.cardiff_db.commit()
+          
+        elif(branch == "Glasgow"):
+            Databases.glasgow_db.commit()
+ 
+        elif(branch == "London"):
+            Databases.london_db.commit()
+
+        elif(branch == "Manchester"):
+            Databases.manchester_db.commit()
+        
+        elif(branch == "Nottingham"):
+            Databases.nottingham_db.commit()
         
         
     def cancelOrder(orderInfo,branch):
