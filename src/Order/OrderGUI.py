@@ -173,6 +173,14 @@ class OrderGUI:
                 self.tableOrder.insert('', 'end', values=(food_item, price))
         
     def check_empty_basket(self,back_button,add_button,widgets):
+        food = []
+        for item in self.tableOrder.get_children():
+            food.append(self.tableOrder.item(item)['values'][0])
+        if len(food) == 0:
+            self.tableOrder.pack_forget()
+            self.confirm_button.pack_forget()
+            self.table_number_entry.pack_forget()
+            self.table_number_label.pack_forget()
         for x in widgets:
             x.forget()
         back_button.forget()
@@ -189,9 +197,6 @@ class OrderGUI:
                 remove = messagebox.askyesno("Remove Item?", "Are You Sure You Want To Remove This Item?")
                 if remove:
                     self.tableOrder.delete(item)
-                    
-            else:
-                pass
        
      
     #Replaces one item from a table order:
