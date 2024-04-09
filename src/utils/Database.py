@@ -1,8 +1,7 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from .env import get_env
-
+from src.utils.env import get_env
 
 class Database:
     connection: psycopg2.extensions.connection
