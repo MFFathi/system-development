@@ -12,27 +12,29 @@ It will also take in input from the user and send it to hte UserSQL file to pefo
 class UserGUI():
     
     def __init__(self,credentials, branch, root):
+        self.credentials = credentials
+        self.root = root
+        self.branch = branch
     
-        account_management_label = ttk.Label(root,text="Account Management",font=("Arial", 28))
+        user_management_label = ttk.Label(root,text="User Management",font=("Arial", 28))
         
-        create_account_button = ttk.Button(root,text="Add User",command=lambda: self._addUser(widgets,credentials, branch,root),width=50)
-        read_account_button = ttk.Button(root,text="View Users",command=lambda: self._viewUsers(widgets, credentials, branch,root, "view"),width=50)
-        update_account_button = ttk.Button(root,text="Update User",command=lambda: self._viewUsers(widgets,credentials,branch,root,"update"),width=50)
-        delete_account_button = ttk.Button(root,text="Delete User",command=lambda: self._viewUsers(widgets,credentials,branch,root,"delete"),width=50)
+        create_account_button = ttk.Button(root,text="Add User",command=lambda: self._addUser(widgets),width=50)
+        read_account_button = ttk.Button(root,text="View Users",command=lambda: self._viewUsers(widgets,"view"),width=50)
+        update_account_button = ttk.Button(root,text="Update User",command=lambda: self._viewUsers(widgets,"update"),width=50)
+        delete_account_button = ttk.Button(root,text="Delete User",command=lambda: self._viewUsers(widgets,"delete"),width=50)
         back_button = ttk.Button(root,text="Back",command=lambda: self.back(widgets,credentials,branch,root),width=50)
       
-        account_management_label.pack()
+        user_management_label.pack()
         create_account_button.pack()
         read_account_button.pack()
         update_account_button.pack()
         delete_account_button.pack()
         back_button.pack()
         
-        widgets = [account_management_label, read_account_button, create_account_button, update_account_button, delete_account_button, back_button]
-        
+        widgets = [user_management_label, read_account_button, create_account_button, update_account_button, delete_account_button, back_button]
         
 #ADD USER
-    def _addUser(self,widgets, credentials, branch,root):
+    def _addUser(self,widgets):
         for x in widgets:
                  x.pack_forget()   
                  
@@ -47,8 +49,8 @@ class UserGUI():
         user_name_label = ttk.Label(text="Username")
         password_label = ttk.Label(text="Password")
         
-        submit_button = ttk.Button(root,text="Submit",command=lambda:submit(credentials, branch, root, fields), width=20)        
-        back_button = ttk.Button(root,text="Back",command=lambda:self.goBackToUserManagement(widgets, credentials, branch,root),width=20)
+        submit_button = ttk.Button(self.root,text="Submit",command=lambda:submit(fields), width=20)        
+        back_button = ttk.Button(self.root,text="Back",command=lambda:self.goBackToUserManagement(widgets),width=40)
         
         first_name_label.pack()
         first_name_entry.pack()
@@ -69,48 +71,63 @@ class UserGUI():
         roles = ["Admin", "Director", "Manager", "Chef", "Staff"]
         
         #Drop down menu for user roles
-        drop = OptionMenu(root, roleEntry, *roles)
+        drop = OptionMenu(self.root, roleEntry, *roles)
         drop.pack()
         
         submit_button.pack()
-        back_button.pack()
+        back_button.pack(side=BOTTOM)
         
         fields = [first_name_entry, last_name_entry, user_name_entry, password_entry, roleEntry]
         
         widgets = [first_name_label, last_name_label, user_name_label, password_label, first_name_entry, last_name_entry, user_name_entry, password_entry, submit_button, drop, back_button]
         
-        def submit(credentials, branch, root, fields):
+        def submit(fields):
+            
+            valid = True
+            userExists = False
                 
             for x in fields:
                 if x.get() == "":
                     messagebox.showerror("Error", "Please Complete All Fileds")
+                    valid = False
                     break
                 elif fields[4].get() == "Role":
                     messagebox.showerror("Error", "Please Select User Role")
+                    valid = False
                     break
                 elif len(fields[3].get()) < 4:
                     messagebox.showerror("Error", "Password Should Be At Least 4 Characters Long")
+                    valid = False
                     break
                 elif len(fields[2].get()) < 4:
                     messagebox.showerror("Error", "Username Should Be At Least 4 Characters Long")
+                    valid = False
                     break
+                
+            usernames = UserSQL.existent_user(self.branch)
             
-            else: 
-                UserSQL.createUser(branch,fields)
+            for username in usernames:
+                if fields[2].get() == username[0]:
+                    messagebox.showerror("Error", "Username Already In Use")
+                    userExists = True
+                    break
+             
+            if valid == True and userExists == False: 
+                UserSQL.createUser(self.branch,fields)
                 messagebox.showinfo("Account Created", "Account Successfully Created")
                 for x in widgets:
                         x.pack_forget()
-                UserGUI(credentials,branch,root)
+                UserGUI(self.credentials,self.branch,self.root)
             
 
 #VIEW USER:
-    def _viewUsers(self, widgets, credentials, branch,root,operation):
+    def _viewUsers(self, widgets,operation):
         
         for x in widgets:
             x.pack_forget()
         
         #Creates the table containing the list of users for the system:
-        table = ttk.Treeview(root,columns=('first_name', 'last_name', 'username', 'password', 'role', 'id'), show='headings')
+        table = ttk.Treeview(self.root,columns=('first_name', 'last_name', 'username', 'password', 'role', 'id'), show='headings')
         table.heading('first_name', text = "First Name")
         table.heading('last_name', text = "Last Name")
         table.heading('username', text = "Username")
@@ -121,28 +138,28 @@ class UserGUI():
         table.pack(fill='both',expand=TRUE)   
         
         if operation == "view":
-            back_button = ttk.Button(root, text="Back",command=lambda:self.goBackToUserManagement(widgets, credentials, branch,root),width=20)
+            back_button = ttk.Button(self.root, text="Back",command=lambda:self.goBackToUserManagement(widgets),width=20)
             back_button.pack()
             widgets = [table, back_button]
             
         elif operation == "update":
-            update_button = ttk.Button(root,text="Update",command=lambda:self._updateUser(widgets,credentials, branch, root, table))
-            back_button = ttk.Button(root, text="Back",command=lambda:self.goBackToUserManagement(widgets, credentials, branch,root))
+            update_button = ttk.Button(self.root,text="Update",command=lambda:self._updateUser(widgets,table))
+            back_button = ttk.Button(self.root, text="Back",command=lambda:self.goBackToUserManagement(widgets))
     
             update_button.pack()
             back_button.pack()
             widgets = [table, update_button, back_button]
             
         elif operation == "delete":
-            delete_button = ttk.Button(root,text="Delete",command=lambda:self._deleteUser(widgets,credentials, branch,root,table))  
-            back_button = ttk.Button(root, text="Back",command=lambda:self.goBackToUserManagement(widgets, credentials, branch,root)) 
+            delete_button = ttk.Button(self.root,text="Delete",command=lambda:self._deleteUser(widgets,table))  
+            back_button = ttk.Button(self.root, text="Back",command=lambda:self.goBackToUserManagement(widgets)) 
             
             delete_button.pack()
             back_button.pack()
             widgets = [table, delete_button, back_button]  
                     
                     
-        viewAccountList = UserSQL.getUsers(branch)
+        viewAccountList = UserSQL.getUsers(self.branch)
         
         #Searches through the individual information about each user from the users list i.e. first name[0], last name[1], username[2], password[3], role[4] and inserts it into the table:
         for x in viewAccountList:
@@ -157,7 +174,7 @@ class UserGUI():
 
 
 #UPDATE USER:
-    def _updateUser(self,widgets,credentials,branch,root,table):
+    def _updateUser(self,widgets,table):
         
         userInfo = []
         for i in table.selection():
@@ -168,7 +185,7 @@ class UserGUI():
                 #Asks for confirmation for the selected user to be updated:
                 yes_no = messagebox.askyesno("Update This User?", "Are You Sure You Want To Make Changes To This User?")
                 if (yes_no) == False: 
-                    self._viewUsers(widgets,credentials, branch,root,"update")
+                    self._viewUsers(widgets,"update")
                 else:
                     for x in widgets:
                         x.pack_forget()
@@ -192,8 +209,8 @@ class UserGUI():
                     username_label = ttk.Label(text="Username")
                     password_label = ttk.Label(text="Password")
                 
-                    submit_button = ttk.Button(root,text="Submit",command=lambda: submitChanges(fields, widgets, branch, root), width=20)        
-                    exit_button = ttk.Button(root,text="Exit",command=lambda: self._viewUsers(widgets,credentials,branch,root,"update"),width=20)
+                    submit_button = ttk.Button(self.root,text="Submit",command=lambda: submitChanges(fields, widgets), width=20)        
+                    exit_button = ttk.Button(self.root,text="Exit",command=lambda: self._viewUsers(widgets,"update"),width=20)
                 
                     first_name_label.pack()
                     first_name_entry.pack()
@@ -214,7 +231,7 @@ class UserGUI():
                     roles = ["Admin", "Director", "Manager", "Chef", "Staff"]
                     
                     #Drop down menu for user roles
-                    drop = OptionMenu(root, roleEntry, *roles)
+                    drop = OptionMenu(self.root, roleEntry, *roles)
                     drop.pack()
                 
                     submit_button.pack()
@@ -225,22 +242,23 @@ class UserGUI():
                     widgets = [first_name_label, last_name_label,username_label,password_label,first_name_entry,last_name_entry,username_entry,password_entry,drop,submit_button,exit_button]
                                 
                     #Finalises changes made to the selected user on the SQL server:
-                    def submitChanges(fields, widgets, branch,root):
+                    def submitChanges(fields, widgets):
                         for x in fields:
                                 if x.get() == "" or fields[4].get() == "Role":
                                     messagebox.showerror("Incomplete Fields", "Please Complete All Fileds")
                                     break
                             
                                 else:
-                                    UserSQL.updateUser(branch,fields)
+                                    UserSQL.updateUser(self.branch,fields)
                                     messagebox.showinfo("User Updated", "User Has Been Updated")
-                                    adminCredentials = UserSQL.adminUpdated(widgets,credentials,branch)
-                                    self._viewUsers(widgets,adminCredentials,branch,root,"update")
+                                    adminCredentials = UserSQL.adminUpdated(widgets,self.credentials,self.branch) #Makes any changes to Admin in real time
+                                    self.credentials = adminCredentials
+                                    self._viewUsers(widgets,"update")
                                     break
                         
                         
 #DELETE USER: 
-    def _deleteUser(self, widgets, credentials, branch,root,table):
+    def _deleteUser(self, widgets,table):
 
         userInfo = []
         for i in table.selection():
@@ -250,22 +268,22 @@ class UserGUI():
                 #Asks for confirmation for the selected user to be deleted:
                 yes_no = messagebox.askyesno("Delete User?", "Are You Sure You Want To Delete This User?")           
                 if yes_no:
-                        UserSQL.deleteUser(userInfo,branch)
+                        UserSQL.deleteUser(userInfo,self.branch)
                         messagebox.showinfo("Account Deleted", "Account Successfully Deleted")
-                        if UserSQL.adminDeleted(widgets, credentials, branch) == True:
-                            Login(widgets,branch,root)
+                        if UserSQL.adminDeleted(widgets, self.credentials, self.branch) == True:
+                            Login(widgets,self.branch,self.root)
                         else:
-                            self._viewUsers(widgets,credentials,branch,root,"delete")
+                            self._viewUsers(widgets,"delete")
                 else:
-                    self._viewUsers(widgets,credentials,branch,root,"delete")
+                    self._viewUsers(widgets,"delete")
             
                 
 #GO BACK TO USER MANAGEMENT PAGE
     #Takes user back to the usermanagement page. Applies to create,read,update and delete
-    def goBackToUserManagement(self, widgets,credentials, branch,root):
+    def goBackToUserManagement(self, widgets):
                 for x in widgets:
                     x.pack_forget() 
-                UserGUI(credentials,branch,root)
+                UserGUI(self.credentials,self.branch,self.root)
 
 
 #GO BACK TO USER HOME PAGE

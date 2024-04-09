@@ -1,4 +1,7 @@
 from Databases.Databases import Databases
+'''
+The purpose of this file is to make any changes to the users table in the database.
+'''
 
 class UserSQL():
     
@@ -102,6 +105,35 @@ class UserSQL():
         viewAccountList = database.fetchall()
         
         return viewAccountList
+    
+#USER ALREADY EXISTS:
+    def existent_user(branch):
+        
+        if branch == "Birmingham":
+            database = Databases.birmingham_db.cursor()
+        
+        elif branch == "Bristol":
+            database = Databases.bristol_db.cursor()
+            
+        elif branch == "Cardiff":
+            database = Databases.cardiff_db.cursor()
+            
+        elif branch == "Glasgow":
+            database = Databases.glasgow_db.cursor()
+            
+        elif branch == "London":
+            database = Databases.london_db.cursor()
+            
+        elif branch == "Manchester":
+            database = Databases.manchester_db.cursor()
+            
+        elif branch == "Nottingham":
+            database = Databases.nottingham_db.cursor()
+        
+        database.execute("SELECT username FROM users")
+        usernamesList = database.fetchall()
+        
+        return usernamesList
                            
 
 #UPDATE ACCOUNT:

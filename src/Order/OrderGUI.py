@@ -7,7 +7,12 @@ from Order.OrderSQL import OrderSQL
 class OrderGUI:
     
     def __init__(self, credentials, branch, root):
-        self.tableOrder = ttk.Treeview(root,columns=('Item', 'Price'),show='headings') #= #None #An order sheet for a particular table 
+        
+        #Attributes:
+        self.credentials = credentials
+        self.branch = branch
+        self.root = root
+        self.tableOrder = ttk.Treeview(root,columns=('Item', 'Price'),show='headings')
         self.orderInfo = [] 
         self.replacementOrder = []
         self.food_item = NONE
@@ -18,15 +23,19 @@ class OrderGUI:
         self.order_number = NONE
         order_label = ttk.Label(root,text="Order",font=("Arial", 28))
         order_label.pack()
+        self.add_items_widgets = []
+        self.replace_items_widgets = []
         self.table_number_label = ttk.Label(root, text = "Table No:")
         self.table_number_entry = ttk.Entry(root)
-        self.confirm_button = ttk.Button(root,text="Confirm Order",command=lambda:self.confirmOrder(self.table_number_entry,NONE,credentials,branch,root,"place",NONE),width=25)                
-        self.confirm_button = ttk.Button(root,text="Confirm Order",command=lambda:self.confirmOrder(self.table_number_entry,NONE,credentials,branch,root,"place",NONE),width=25)
-        
-        place_order_button = ttk.Button(root,text="Place Order",command=lambda: self.placeOrder(widgets,credentials, branch, root),width=50)
-        view_order_button = ttk.Button(root,text="View Orders",command=lambda: self.viewOrders(widgets, credentials, branch, root,"view"),width=50)
-        update_order_button = ttk.Button(root,text="Update Order",command=lambda: self.viewOrders(widgets,credentials,branch, root,"update"),width=50)
-        cancel_order_button = ttk.Button(root,text="Cancel Order",command=lambda: self.viewOrders(widgets,credentials,branch, root,"cancel"),width=50)
+        self.confirm_button = ttk.Button(root,text="Confirm Order",command=lambda:self.confirmOrder(self.table_number_entry,self.add_items_widgets,"place",NONE),width=25)                
+        self.foodItemsInCategoryTable = ttk.Treeview(self.root,columns=('food_item', 'price', 'category', 'description', 'diet'), show='headings')
+        self.ordersTable = ttk.Treeview(self.root,columns=("food_item", "price", "staff_username", "order_status", "payment_status", "table_number","order_number"), show='headings')
+
+        #Order Management Page:
+        place_order_button = ttk.Button(root,text="Place Order",command=lambda: self.placeOrder(widgets),width=50)
+        view_order_button = ttk.Button(root,text="View Orders",command=lambda: self.viewOrders(widgets,"view"),width=50)
+        update_order_button = ttk.Button(root,text="Update Order",command=lambda: self.viewOrders(widgets,"update"),width=50)
+        cancel_order_button = ttk.Button(root,text="Cancel Order",command=lambda: self.viewOrders(widgets,"cancel"),width=50)
  
         place_order_button.pack()
         view_order_button.pack()
@@ -39,42 +48,47 @@ class OrderGUI:
         widgets = [order_label,back_button, place_order_button, view_order_button,update_order_button, cancel_order_button]
         
         
-    #Place Table Order
-    def placeOrder(self,widgets, credentials, branch, root):
+    #Place Table Order:
+    def placeOrder(self,widgets):
         for x in widgets:
             x.pack_forget()
+            
+        self.table_number_label.forget()
+        self.table_number_entry.forget()
         
-        place_order_label = ttk.Label(root,text="Place Order",font=("Arial", 28))
+        place_order_label = ttk.Label(self.root,text="Place Order",font=("Arial", 28))
         place_order_label.pack()
         
-        food_categories_button = ttk.Button(root,text="View Food Categories",command=lambda:self.foodCategories(widgets,credentials,branch,root,"place"),width=50)
+        food_categories_button = ttk.Button(self.root,text="View Food Categories",command=lambda:self.foodCategories(widgets,"place"),width=50)
         food_categories_button.pack()
         
-        back_button = ttk.Button(root,text="Back",command=lambda : self.backToOrderPage(widgets,credentials,branch,root),width=50) 
+        back_button = ttk.Button(self.root,text="Back",command=lambda : self.backToOrderPage(widgets),width=50) 
         back_button.pack(side=BOTTOM)
         
         widgets =[place_order_label,food_categories_button,back_button]
     
     
-    #View Table Orders
-    def viewOrders(self,widgets,credentials,branch,root,operation):
+    #View Table Orders:
+    def viewOrders(self,widgets,operation):
         for x in widgets:
             x.pack_forget()
             
-        view_orders = OrderSQL.getOrders(branch)
+        for x in self.ordersTable.get_children():
+            self.ordersTable.delete(x)
+            
+        view_orders = OrderSQL.getOrders(self.branch)
         
-        table_orders_label = ttk.Label(root,text="Table Orders",font=("Arial",28))
+        table_orders_label = ttk.Label(self.root,text="Table Orders",font=("Arial",28))
         table_orders_label.pack()
             
-        ordersTable = ttk.Treeview(root,columns=("food_item", "price", "staff_username", "order_status", "payment_status", "table_number","order_number"), show='headings')
-        ordersTable.heading("food_item", text = "Food Item")
-        ordersTable.heading("price", text = "Price")
-        ordersTable.heading("staff_username", text = "Staff Username")
-        ordersTable.heading("order_status", text = "Order Status")
-        ordersTable.heading("payment_status", text = "Payment Status")
-        ordersTable.heading("table_number", text = "Table No.")
-        ordersTable.heading("order_number", text = "Order No.")
-        ordersTable.pack(fill='both', expand=TRUE)
+        self.ordersTable.heading("food_item", text = "Food Item")
+        self.ordersTable.heading("price", text = "Price")
+        self.ordersTable.heading("staff_username", text = "Staff Username")
+        self.ordersTable.heading("order_status", text = "Order Status")
+        self.ordersTable.heading("payment_status", text = "Payment Status")
+        self.ordersTable.heading("table_number", text = "Table No.")
+        self.ordersTable.heading("order_number", text = "Order No.")
+        self.ordersTable.pack(fill='both', expand=TRUE)
         
         for x in view_orders:
             food_item = x[0]
@@ -85,63 +99,66 @@ class OrderGUI:
             table_number = x[5]
             order_number = x[6]
             data = (food_item, price, staff_username, order_status, payment_status, table_number, order_number)
-            ordersTable.insert(parent = '', index=0, values=data)
+            self.ordersTable.insert(parent = '', index=0, values=data)
             
         if operation == "view":
-            view_orders_back_button = ttk.Button(root,text="Back",command=lambda:self.backToOrderPage(widgets,credentials,branch,root))
+            view_orders_back_button = ttk.Button(self.root,text="Back",command=lambda:self.backToOrderPage(widgets))
             view_orders_back_button.pack()
-            widgets = [view_orders_back_button, ordersTable,table_orders_label]
+            widgets = [view_orders_back_button, self.ordersTable,table_orders_label]
             
         elif operation == "update":
-            update_order_button = ttk.Button(root,text="Update Order",command=lambda:self.updateOrder(widgets,credentials,branch, root, ordersTable))
+            update_order_button = ttk.Button(self.root,text="Update Order",command=lambda:self.updateOrder(widgets))
             update_order_button.pack()
-            view_orders_back_button = ttk.Button(root,text="Back",command=lambda:self.backToOrderPage(widgets,credentials,branch,root))
+            view_orders_back_button = ttk.Button(self.root,text="Back",command=lambda:self.backToOrderPage(widgets))
             view_orders_back_button.pack()
-            widgets = [view_orders_back_button, update_order_button,table_orders_label,ordersTable]
+            widgets = [view_orders_back_button, update_order_button,table_orders_label,self.ordersTable]
             
         elif operation == "cancel":
-            cancel_order_button = ttk.Button(root,text="Cancel Order",command=lambda:self.cancelOrder(widgets,credentials,branch, root, ordersTable))
+            cancel_order_button = ttk.Button(self.root,text="Cancel Order",command=lambda:self.cancelOrder(widgets))
             cancel_order_button.pack()
-            view_orders_back_button = ttk.Button(root,text="Back",command=lambda:self.backToOrderPage(widgets,credentials,branch,root))
+            view_orders_back_button = ttk.Button(self.root,text="Back",command=lambda:self.backToOrderPage(widgets))
             view_orders_back_button.pack()
-            widgets = [view_orders_back_button, ordersTable, cancel_order_button,table_orders_label]
+            widgets = [view_orders_back_button, self.ordersTable, cancel_order_button,table_orders_label]
     
     
-    #Update Table Order
-    def updateOrder(self, widgets,credentials,branch, root, ordersTable):
-        for i in ordersTable.selection():
-            a = tuple((ordersTable.item(i)['values']))
+    #Update Table Order:
+    def updateOrder(self, widgets):
+        for i in self.ordersTable.selection():
+            a = tuple((self.ordersTable.item(i)['values']))
         if a[0] != " ":
-            self.orderInfo.append(ordersTable.item(i)['values'])
+            for item in self.tableOrder.get_children():
+                self.tableOrder.delete(item)
+            self.orderInfo.clear()
+            self.orderInfo.append(self.ordersTable.item(i)['values'])
             #Asks for confirmation for the selected order to be changed:
             yes_no = messagebox.askyesno("Change Order?", "Are You Sure You Want To Change This Order?")           
             if yes_no:
                 for x in widgets:
                     x.pack_forget()          
-                self.foodCategories(widgets,credentials,branch,root,"update")
-                if self.tableOrder == None:
-                    self.tableOrder = ttk.Treeview(root,columns=('Item', 'Price'),show='headings')
-                    self.tableOrder.heading('Item', text='Food Item')
-                    self.tableOrder.heading('Price', text='Price')
-                    self.tableOrder.pack(side=BOTTOM)
-                    self.food_item = self.orderInfo[0][0]
-                    self.price = self.orderInfo[0][1]
-                    self.tableOrder.insert('', 'end', values=(self.food_item, self.price))
-                        
+                self.foodCategories(widgets,"update")
+                self.tableOrder.heading('Item', text='Food Item')
+                self.tableOrder.heading('Price', text='Price')
+                self.tableOrder.pack(side=BOTTOM)
+                self.food_item = self.orderInfo[0][0]
+                self.price = self.orderInfo[0][1]
+                self.tableOrder.insert('', 'end', values=(self.food_item, self.price))
+                                 
     
-    #Cancel Table Order
-    def cancelOrder(self, widgets,credentials,branch, root, table):
-        for i in table.selection():
-            a = tuple((table.item(i)['values']))
+    #Cancel Table Order:
+    def cancelOrder(self, widgets):
+        for i in self.ordersTable.selection():
+            a = tuple((self.ordersTable.item(i)['values']))
             if a[0] != " ":
-                self.orderInfo.append(table.item(i)['values'])
+                self.orderInfo.clear()
+                self.orderInfo.append(self.ordersTable.item(i)['values'])
                 #Asks for confirmation for the selected order to be cancelled:
                 yes_no = messagebox.askyesno("Cancel Order?", "Are You Sure You Want To Cancel This Order?")           
                 if yes_no:
-                        OrderSQL.cancelOrder(self.orderInfo,branch)
+                        OrderSQL.cancelOrder(self.orderInfo,self.branch)
                         messagebox.showinfo("Order Cancelled", "Order Successfully Removed")
-                        self.viewOrders(widgets,credentials,branch,root,"cancel")
+                        self.viewOrders(widgets,"cancel")
     
+    #Add Items To Basket:
     def add(self,foodItemsInCategoryTable):
         for i in foodItemsInCategoryTable.selection():
             a = tuple((foodItemsInCategoryTable.item(i)['values']))
@@ -150,21 +167,26 @@ class OrderGUI:
                 for item in selectedItem:
                     food_item = foodItemsInCategoryTable.item(item, 'values')[0]
                     price = foodItemsInCategoryTable.item(item, 'values')[1]
-                self.table_number_label.pack()
-                self.table_number_entry.pack()
-                self.confirm_button.pack()
+                self.table_number_entry.pack(side=BOTTOM)
+                self.table_number_label.pack(side=BOTTOM)
+                self.confirm_button.pack(side=BOTTOM)
                 self.tableOrder.insert('', 'end', values=(food_item, price))
         
     def check_empty_basket(self,back_button,add_button,widgets):
+        food = []
+        for item in self.tableOrder.get_children():
+            food.append(self.tableOrder.item(item)['values'][0])
+        if len(food) == 0:
+            self.tableOrder.pack_forget()
+            self.confirm_button.pack_forget()
+            self.table_number_entry.pack_forget()
+            self.table_number_label.pack_forget()
         for x in widgets:
             x.forget()
         back_button.forget()
         add_button.forget()
-        self.confirm_button.forget()
-        self.table_number_label.forget()
-        self.table_number_entry.forget()
         
-
+        
     #Remove Food Item From Basket
     def removeFromBasket(self):
         
@@ -175,15 +197,10 @@ class OrderGUI:
                 remove = messagebox.askyesno("Remove Item?", "Are You Sure You Want To Remove This Item?")
                 if remove:
                     self.tableOrder.delete(item)
-                    self.confirm_button.forget()
-                    self.table_number_label.forget()
-                    self.table_number_entry.forget()
-            else:
-                pass
        
      
     #Replaces one item from a table order:
-    def replaceItem(self,widgets,foodItemsInCategoryTable,root,credentials,branch):
+    def replaceItem(self,widgets,foodItemsInCategoryTable):
         selectedItem = foodItemsInCategoryTable.selection()
         for i in selectedItem:
             replacementOrder = []
@@ -201,7 +218,7 @@ class OrderGUI:
                         self.tableOrder.insert('', 'end', values=(self.food_item, self.price))   
                     
                     #Gets username of staff that is making the change to the order
-                    self.staff = credentials[1]
+                    self.staff = self.credentials[1]
                     
                     #Leaves the rest of the information about the order unchanged
                     self.orderStatus = self.orderInfo[0][3]
@@ -209,35 +226,45 @@ class OrderGUI:
                     self.table_number = self.orderInfo[0][5]    
                     self.order_number = self.orderInfo[0][6] 
                     newOrder = [self.food_item,self.price,self.staff,self.orderStatus,self.paymentStatus,self.table_number,self.order_number]
-                    confirm_button = ttk.Button(root,text="Confirm Changes",command=lambda:self.confirmOrder(self.table_number,widgets,credentials,branch,root,"update",newOrder))
+                    confirm_button = ttk.Button(self.root,text="Confirm Changes",command=lambda:self.confirmOrder(self.table_number,widgets,"update",newOrder))
                     confirm_button.pack()
+                    self.replace_items_widgets.append(confirm_button)
                     widgets.append(confirm_button)
     
+    
     #Confirm Table Order
-    def confirmOrder(self, table_number_entry,basket,credentials,branch,root,operation,newOrder):
-        confirm_order = messagebox.askyesno("Confirm Order","Confirm Order?")
-        if confirm_order :
-            
-            #Sends a placed order to database:
-            if operation == "place":
-                for item in self.tableOrder.get_children():
-                    food_item = self.tableOrder.item(item,'values')[0]
-                    price = self.tableOrder.item(item, 'values')[1]
-                    staff = credentials[1]
-                    order_status = "PENDING"
-                    payment_status = "PENDING"
-                    table_number = table_number_entry.get()
-                    order = [food_item,price,staff,order_status,payment_status,table_number]
-                    
-                    OrderSQL.addOrder(order, branch)
-                    messagebox.showinfo("Order Added", "Order Successfully Added")
-                    self.orderInfo.clear()
-                    for x in basket:
-                        x.pack_forget()
-                    OrderGUI(credentials,branch,root)
-                    
-            #Commits updates to an existing order:
-            elif operation == "update":
+    def confirmOrder(self, table_number_entry,widgets,operation,newOrder):
+        #Sends a placed order to database:
+        if operation == "place":
+                if table_number_entry.get() == "":
+                            messagebox.showerror("Error", "Please Enter Table Number")
+                else:
+                    confirm_order = messagebox.askyesno("Confirm Order","Confirm Order?")
+                    if confirm_order :
+                                                
+                            for item in self.tableOrder.get_children():
+                                food_item = self.tableOrder.item(item,'values')[0]
+                                price = self.tableOrder.item(item, 'values')[1]
+                                staff = self.credentials[1]
+                                order_status = "PENDING"
+                                payment_status = "PENDING"
+                                table_number = table_number_entry.get()
+                                order = [food_item,price,staff,order_status,payment_status,table_number]
+                            
+                                OrderSQL.addOrder(order, self.branch)
+                                messagebox.showinfo("Order Added", "Order Successfully Added")
+                                self.orderInfo.clear()
+                                for x in widgets:
+                                    x.pack_forget()
+                                self.tableOrder.pack_forget()
+                                self.table_number_entry.pack_forget()
+                                self.table_number_label.pack_forget()
+                                self.confirm_button.pack_forget()
+                                self.foodItemsInCategoryTable.pack_forget()
+                                self.backToOrderPage(self.add_items_widgets)
+
+        #Commits updates to an existing order:
+        elif operation == "update":
                 for item in self.tableOrder.get_children():
                     food_item = newOrder[0]
                     price = newOrder[1]
@@ -248,44 +275,46 @@ class OrderGUI:
                     order_number = self.order_number
                     order = [food_item,price,staff,order_status,payment_status,table_number,order_number]
                     
-                    OrderSQL.updateOrder(order, branch)
+                    OrderSQL.updateOrder(order, self.branch)
                     messagebox.showinfo("Order Updated", "Order Successfully Changed")
                     self.replacementOrder.clear()
                     self.orderInfo.clear()
-                    self.viewOrders(basket,credentials,branch,root,"update")
-                    self.tableOrder.forget()
+                    for x in self.replace_items_widgets:
+                        x.pack_forget()
+                    self.viewOrders(self.add_items_widgets,"update")
+                
                 
     #View Food Items In Food Category
-    def foodItems(self,widgets,credentials,branch,root,ordersTable,operation):       
-                
-        for i in ordersTable.selection():
-            a = tuple((ordersTable.item(i)['values']))
+    def foodItems(self,widgets,foodCategoriesTable,operation):       
+        
+        #Gathers items from selected food category:
+        for i in foodCategoriesTable.selection():
+            a = tuple((foodCategoriesTable.item(i)['values']))
             if a[0] != " ":
                 category = a
-                items = OrderSQL.get_food_items(branch,category)
+                items = OrderSQL.get_food_items(self.branch,category)
                 
                 for x in widgets:
                     x.pack_forget() 
                                 
-                food_items_label = ttk.Label(root,text="Food Items",font=("Arial",28))
+                food_items_label = ttk.Label(self.root,text="Food Items",font=("Arial",28))
                 food_items_label.pack(side=TOP)
             
-                foodItemsInCategoryTable = ttk.Treeview(root,columns=('food_item', 'price', 'category', 'description', 'diet'), show='headings')
-                foodItemsInCategoryTable.heading('food_item', text="Food Item")
-                foodItemsInCategoryTable.heading('price', text="Price") 
-                foodItemsInCategoryTable.heading('category', text="Category")
-                foodItemsInCategoryTable.heading('description', text="Description")
-                foodItemsInCategoryTable.heading('diet', text="Diet")
+                self.foodItemsInCategoryTable.heading('food_item', text="Food Item")
+                self.foodItemsInCategoryTable.heading('price', text="Price") 
+                self.foodItemsInCategoryTable.heading('category', text="Category")
+                self.foodItemsInCategoryTable.heading('description', text="Description")
+                self.foodItemsInCategoryTable.heading('diet', text="Diet")
             
-                foodItemsInCategoryTable.pack(fill='both',expand=TRUE,side=TOP)
+                self.foodItemsInCategoryTable.pack(fill='both',expand=TRUE,side=TOP)
                                 
                 if (operation == "place"):
-                    add_to_basket_button = ttk.Button(root,text="Add To Basket",command=lambda:self.add(foodItemsInCategoryTable))
+                    add_to_basket_button = ttk.Button(self.root,text="Add To Basket",command=lambda:self.add(self.foodItemsInCategoryTable))
                     add_to_basket_button.pack()
-                    remove_item_button = ttk.Button(root,text="Remove Item From Basket",command=lambda:self.removeFromBasket())
+                    remove_item_button = ttk.Button(self.root,text="Remove Item From Basket",command=lambda:self.removeFromBasket())
                     remove_item_button.pack()
                     
-                    back_button= ttk.Button(root,text="Back",command=lambda:[self.check_empty_basket(back_button,add_to_basket_button,widgets),self.foodCategories(widgets, credentials,branch,root,operation)],width=40)
+                    back_button= ttk.Button(self.root,text="Back",command=lambda:[self.check_empty_basket(back_button,add_to_basket_button,widgets), clearItems(),self.foodCategories(widgets,operation)],width=40)
                     back_button.pack(side=BOTTOM)
                     
                     #Treeview For Table Order 
@@ -293,16 +322,21 @@ class OrderGUI:
                     self.tableOrder.heading('Price', text='Price')
                     self.tableOrder.pack(side=BOTTOM)
                     
-                    widgets = [foodItemsInCategoryTable,back_button,add_to_basket_button,food_items_label,remove_item_button]
+                    self.add_items_widgets = [self.foodItemsInCategoryTable,back_button,add_to_basket_button,food_items_label,remove_item_button]
                     
                 elif operation == "update":
-                    replace_item_button = ttk.Button(root,text="Replace",command=lambda:self.replaceItem(widgets,foodItemsInCategoryTable,root,credentials,branch))
+                    for x in self.foodItemsInCategoryTable.get_children():
+                        self.foodItemsInCategoryTable.delete(x)
+                    replace_item_button = ttk.Button(self.root,text="Replace",command=lambda:self.replaceItem(widgets,self.foodItemsInCategoryTable))
                     replace_item_button.pack()
-                    back_button= ttk.Button(root,text="Back",command=lambda:self.foodCategories(widgets, credentials,branch,root,operation))
+                    back_button= ttk.Button(self.root,text="Back",command=lambda:self.foodCategories(widgets,operation))
                     back_button.pack(side=BOTTOM)
                     
-                    widgets = [foodItemsInCategoryTable,back_button,replace_item_button,food_items_label]
-                                    
+                    widgets = [self.foodItemsInCategoryTable,back_button,replace_item_button,food_items_label]
+                    
+                    self.replace_items_widgets = [replace_item_button,self.foodItemsInCategoryTable,self.confirm_button,back_button,self.tableOrder,food_items_label]
+                             
+                #Inserts gathered food items from selected category into the food items table 
                 for x in items:
                     food_item = x[0]
                     price = x[1]
@@ -310,20 +344,28 @@ class OrderGUI:
                     description = x[3]
                     diet = x[4]
                     data = (food_item,price,category,description,diet)
-                    foodItemsInCategoryTable.insert(parent = '', index=0, values=data)    
+                    self.foodItemsInCategoryTable.insert(parent = '', index=0, values=data)
                     
+        #Clears items in the food items category table:
+        def clearItems():
+            for item in self.foodItemsInCategoryTable.get_children():            
+                self.foodItemsInCategoryTable.delete(item)
+            self.foodItemsInCategoryTable.pack_forget()
+            food_items_label.pack_forget()
+            remove_item_button.pack_forget()
+                               
                             
     #View Food Categories
-    def foodCategories(self,widgets,credentials,branch,root,operation):
+    def foodCategories(self,widgets,operation):
         for x in widgets:
             x.pack_forget()
-        view_food_categories = OrderSQL.get_food_categories(branch)
+        view_food_categories = OrderSQL.get_food_categories(self.branch)
         
-        food_categories_label = ttk.Label(root,text="Food Categories",font=("Arial",28))
+        food_categories_label = ttk.Label(self.root,text="Food Categories",font=("Arial",28))
         food_categories_label.pack(side=TOP)
         
         #Creates the table containing the list of food categories:
-        foodCategoriesTable = ttk.Treeview(root,columns=('categories', ), show='headings')
+        foodCategoriesTable = ttk.Treeview(self.root,columns=('categories', ), show='headings')
         foodCategoriesTable.heading('categories', text = "Food Categories")
     
         foodCategoriesTable.pack(fill='both',expand=TRUE,side=TOP)   
@@ -332,26 +374,45 @@ class OrderGUI:
             foodCategoriesTable.insert(parent = '', index=0, values= x)
         
         if operation == "place":
-            view_items_button = ttk.Button(root,text="View Items",command=lambda:self.foodItems(widgets,credentials,branch,root,foodCategoriesTable,"place"),width=40)
+            view_items_button = ttk.Button(self.root,text="View Items",command=lambda:self.foodItems(widgets,foodCategoriesTable,"place"),width=40)
             view_items_button.pack()
-            back_button = ttk.Button(root,text="Back",command=lambda:[self.placeOrder(widgets,credentials,branch,root),self.tableOrder.forget()],width=40)
+            back_button = ttk.Button(self.root,text="Back",command=lambda:[items_left_in_basket()],width=40)
             back_button.pack(side=BOTTOM)
             widgets = [foodCategoriesTable, view_items_button,back_button,food_categories_label]
+            
         elif operation == "update":
-            view_items_button = ttk.Button(root,text="View Items",command=lambda:self.foodItems(widgets,credentials,branch,root,foodCategoriesTable,"update"),width=40)
+            view_items_button = ttk.Button(self.root,text="View Items",command=lambda:self.foodItems(widgets,foodCategoriesTable,"update"),width=40)
             view_items_button.pack()
-            back_button = ttk.Button(root,text="Back",command=lambda:[self.tableOrder.pack_forget(), self.viewOrders(widgets,credentials,branch,root,"update")])
+            back_button = ttk.Button(self.root,text="Back",command=lambda:[self.tableOrder.pack_forget(), self.viewOrders(widgets,"update")])
             back_button.pack()
             widgets = [foodCategoriesTable, view_items_button,back_button,food_categories_label]
 
+        #Checks if there are any items remaining inside the basket, if the user chooses to no longer place an order:
+        def items_left_in_basket():
+            food = []
+            for item in self.tableOrder.get_children():
+                food.append(self.tableOrder.item(item)['values'][0])
+            if len(food) == 0:
+                self.placeOrder(widgets)
+                self.tableOrder.forget()
+                self.confirm_button.pack_forget()
+            else:
+                itemsRemaining = messagebox.askyesno("Items Remaining In Basket","Are You Sure You Want To Exit?")
+                if itemsRemaining:
+                    for item in self.tableOrder.get_children():
+                        self.tableOrder.delete(item)
+                    self.placeOrder(widgets)
+                    self.tableOrder.forget()
+                    self.confirm_button.pack_forget()
+                else:
+                    pass
+                    
         
-
-
     #Return To Order Page
-    def backToOrderPage(self,widgets,credentials, branch,root):
+    def backToOrderPage(self,widgets):
         for x in widgets:
             x.pack_forget()
-        OrderGUI(credentials,branch,root)
+        OrderGUI(self.credentials,self.branch,self.root)
         
 
     #GO BACK TO USER HOME PAGE
