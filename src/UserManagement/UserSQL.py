@@ -107,7 +107,7 @@ class UserSQL():
         return viewAccountList
     
 #USER ALREADY EXISTS:
-    def existent_user(branch):
+    def username_in_use(branch):
         
         if branch == "Birmingham":
             database = Databases.birmingham_db.cursor()
@@ -262,7 +262,7 @@ class UserSQL():
   
  
 #Checks if an admin's first name has been updated:
-    def adminUpdated(widgets, credentials, branch):
+    def check_admin_updated(credentials, branch):
         first_name = credentials[0]
         username = credentials[1]
         password = credentials[2]
@@ -294,7 +294,7 @@ class UserSQL():
             return credentials
 
 #If admin deletes their own account, they will be logged out of the system:
-    def adminDeleted(widgets, credentials,branch):
+    def check_admin_deleted(credentials,branch):
         
         username = credentials[1]
         password = credentials[2]

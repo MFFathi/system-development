@@ -2,7 +2,11 @@ from tkinter import *
 from tkinter import ttk
 from tkcalendar import *
 
-from Login.Login import Login
+from LoginGUI.LoginGUI import LoginGUI
+
+'''
+The purpose of this file is to provide a user with various branches to log into.
+'''
 
 root = Tk()
 root.geometry("500x320")
@@ -24,13 +28,13 @@ class Branch():
          manchester = "Manchester"
          nottingham = "Nottingham"
          
-         birmingham_button = ttk.Button(root,text="Birmingham",command=lambda:Login(widgets, birmingham,root),width=40)
-         bristol_button = ttk.Button(root,text="Bristol",command=lambda:Login(widgets, bristol,root),width=40)
-         cardiff_button = ttk.Button(root,text="Cardiff",command=lambda:Login(widgets, cardiff,root),width=40)
-         glasgow_button = ttk.Button(root,text="Glasgow",command=lambda:Login(widgets, glasgow,root),width=40)
-         london_button = ttk.Button(root,text="London",command=lambda:Login(widgets, london,root),width=40)
-         manchester_button = ttk.Button(root,text="Manchester",command=lambda:Login(widgets, manchester,root),width=40)
-         nottingham_button = ttk.Button(root,text="Nottingham",command=lambda:Login(widgets, nottingham,root),width=40)
+         birmingham_button = ttk.Button(root,text="Birmingham",command=lambda:LoginGUI(widgets, birmingham,root),width=40)
+         bristol_button = ttk.Button(root,text="Bristol",command=lambda:LoginGUI(widgets, bristol,root),width=40)
+         cardiff_button = ttk.Button(root,text="Cardiff",command=lambda:LoginGUI(widgets, cardiff,root),width=40)
+         glasgow_button = ttk.Button(root,text="Glasgow",command=lambda:LoginGUI(widgets, glasgow,root),width=40)
+         london_button = ttk.Button(root,text="London",command=lambda:LoginGUI(widgets, london,root),width=40)
+         manchester_button = ttk.Button(root,text="Manchester",command=lambda:LoginGUI(widgets, manchester,root),width=40)
+         nottingham_button = ttk.Button(root,text="Nottingham",command=lambda:LoginGUI(widgets, nottingham,root),width=40)
          
          system_name.pack()
          select_branch_label.pack()

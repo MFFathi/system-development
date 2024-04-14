@@ -68,9 +68,9 @@ class STAFF():
       def order(self,widgets,credentials,branch,database,root):
             for x in widgets:
                x.pack_forget() 
-            from Order.Order import Order
-            Order(credentials,branch,database,root)
+            from Order.OrderGUI import OrderGUI
+            OrderGUI(credentials,branch,database,root)
 
       def logout(self,widgets,branch,root):
-               from Login.Login import Login
-               Login(widgets,branch,root)
+               from LoginGUI.LoginGUI import LoginGUI
+               LoginGUI(widgets,branch,root)

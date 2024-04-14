@@ -93,5 +93,5 @@ class MANAGER():
          Reservation(credentials,branch,database,root)
 
     def logout(self,widgets,branch,root):
-            from Login.Login import Login
-            Login(widgets,branch,root)     
+            from LoginGUI.LoginGUI import LoginGUI
+            LoginGUI(widgets,branch,root)     
