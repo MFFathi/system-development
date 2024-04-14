@@ -19,7 +19,7 @@ class ADMIN():
 
           #BUTTON CREATION:
           #Account Management Button:
-          account_management_button = ttk.Button(root,text="Account Management", command=lambda : self.accountManagement(widgets,credentials, branch, root), width=50)
+          user_management_button = ttk.Button(root,text="User Management", command=lambda : self.userManagement(widgets,credentials, branch, root), width=50)
           #Menu Button:
           menu_button = ttk.Button(root,text="Menu", command=lambda : self.menu(widgets,credentials,branch, root), width=50)
           #Report Button:
@@ -46,7 +46,7 @@ class ADMIN():
           welcome_message.pack()
 
           #Displays Buttons Alphabetically:
-          account_management_button.pack()
+          user_management_button.pack()
           discounts_button.pack()
           events_button.pack()
           inventory_button.pack()
@@ -59,7 +59,7 @@ class ADMIN():
           
           #Packs the widgets into a list to be passed onto the next class/function that may be called: 
           widgets = [system_name,
-                    account_management_button, 
+                    user_management_button, 
                     discounts_button,
                     events_button,
                     inventory_button,
@@ -73,11 +73,9 @@ class ADMIN():
                     user_role]  
           
      #The Functions Below Call The Relevant Class Based On The Button That Was Clicked On As Well As Remove The Widgets On The Current Page:
-     def accountManagement(self,widgets,credentials,branch,root):
+     def userManagement(self,widgets,credentials,branch,root):
           for x in widgets:
-                    x.pack_forget() 
-          #from UserManagement.UserManagement import UserManagement
-          #UserManagement(credentials,branch,root) 
+                    x.pack_forget()  
           from UserManagement.UserGUI import UserGUI
           UserGUI(credentials,branch,root)
           
@@ -130,5 +128,5 @@ class ADMIN():
           OrderGUI(credentials,branch,root)
 
      def logout(self,widgets,branch,root):
-               from Login.Login import Login
-               Login(widgets,branch,root)
+               from LoginGUI.LoginGUI import LoginGUI
+               LoginGUI(widgets,branch,root)
