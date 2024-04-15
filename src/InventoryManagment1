@@ -1,0 +1,57 @@
+class Item:
+    def __init__(self, name, category):
+        self.name = name
+        self.category = category
+
+class Inventory:
+    def __init__(self):
+        self.items = {}
+        self.history = []
+
+    def add_item(self, item, quantity):
+        if item in self.items:
+            self.items[item] += quantity
+        else:
+            self.items[item] = quantity
+        self.history.append((item, 'add', quantity))
+
+    def remove_item(self, item, quantity):
+        if item in self.items and self.items[item] >= quantity:
+            self.items[item] -= quantity
+            if self.items[item] == 0:
+                del self.items[item]
+            self.history.append((item, 'remove', quantity))
+        else:
+            print("Not enough quantity in inventory")
+
+    def check_item(self, item):
+        if item in self.items:
+            return self.items[item]
+        else:
+            return 0
+
+    def get_history(self):
+        for item, action, quantity in self.history:
+            print(f"{action} {quantity} {item.name}")
+
+class User:
+    def __init__(self, name, role):
+        self.name = name
+        self.role = role
+
+class Manager(User):
+    def __init__(self, name):
+        super().__init__(name, 'Manager')
+
+    def add_item(self, inventory, item, quantity):
+        inventory.add_item(item, quantity)
+
+    def remove_item(self, inventory, item, quantity):
+        inventory.remove_item(item, quantity)
+
+class Chef(User):
+    def __init__(self, name):
+        super().__init__(name, 'Chef')
+
+    def check_item(self, inventory, item):
+        return inventory.check_item(item)
