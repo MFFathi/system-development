@@ -127,9 +127,6 @@ class OrderSQL():
         food_item = order[0]
         price = order[1]
         staff = order[2]
-        order_status = order[3]
-        payment_status = order[4]
-        table_number = order[5]
         order_number = order[6]
         
         database = Databases.getDatabase(branch).cursor()

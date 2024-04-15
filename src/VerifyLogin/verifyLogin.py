@@ -8,12 +8,15 @@ from ChefGUI.ChefGUI import CHEF
 from StaffGUI.StaffGUI import STAFF
 from Databases.Databases import Databases
 
+'''
+The purpose of this file is to verify the login details entered by a user in an attempt to log into the system.
+'''
 
 class verifyLogin():
     
         def verify(entered_username,entered_password,widgets,branch,root):    
 
-            correct = FALSE 
+            valid = FALSE 
                         
             #Selects The Relevant Database Based On The Chosen Branch:
             if (branch == "Birmingham"):
@@ -52,7 +55,7 @@ class verifyLogin():
                 if (entered_username == x[1]):#Looks To See If There Is An Account With The Respective Username
                     if(entered_password == x[2]):#If The Username Of An Account Is Correct, It Looks To See If The Password Is Correct
                              userCredentials = (x) #Appends The First Name, Username, Password And Role Respectively Into A Tuple If Login Credentials Are Correct
-                             correct = TRUE #Sets The Boolean Used To TRUE If The Account Details Are Correct.
+                             valid = TRUE #Sets The Boolean Used To TRUE If The Account Details Are Correct.
                              #If The User Is An Admin Then The Admin Class Is Called
 
                              if(userCredentials[3] == 'Admin'):
@@ -71,8 +74,9 @@ class verifyLogin():
                             #If The User Is A Staff:
                              elif(userCredentials[3] == 'Staff'):
                                     STAFF(widgets,userCredentials,branch,root)
+                                    
+            return valid
             
-            if (correct == FALSE): #If The Entered Details Are Not Correct, Then A New Window Will Pop-up And Display It To The User
-                messagebox.showinfo("Login Failed", "Incorrect Login Details!")
+
   
  
