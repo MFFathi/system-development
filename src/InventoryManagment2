@@ -1,6 +1,5 @@
-import Database as DB
-
-## INVENTORY DB FUNCTIONS ##
+import tkinter as TK
+from tkinter import ttk, messagebox, END, HORIZONTAL
 
 # UTILITY
 def Create_Item(ItemName:str, Quant:float, Thresh:float = 0):
