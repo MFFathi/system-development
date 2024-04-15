@@ -1,0 +1,162 @@
+import Database as DB
+
+## INVENTORY DB FUNCTIONS ##
+
+# UTILITY
+def Create_Item(ItemName:str, Quant:float, Thresh:float = 0):
+    """
+    Adds item to database.
+    """
+    #Creates DB session
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    #Adds item to DB
+    session.add(DB.Inventory_Item(ItemName, Quant, Thresh))
+
+    #Saves Changes and closes session
+    session.commit()
+    session.close()
+
+def Delete_Item(ID):
+    """
+    Deletes item with ID
+    """
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    target = session.get(DB.Inventory_Item, ID)
+    session.delete(target)
+
+    session.commit()
+    session.close()
+
+def Adjust_Quantity(ID, Value:float):
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    target = session.get(DB.Inventory_Item, ID)
+    target.Quantity += Value
+
+    session.commit()
+    session.close()
+
+# SETTERS
+def Set_Name(ID, NewName:str):
+    """
+    Updates name of ID
+
+    WARNING: names must be unique, will probably cause an error so check if name already exists first.
+    """
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    target = session.get(DB.Inventory_Item, ID)
+    target.Name = NewName
+
+    session.commit()
+    session.close()
+
+def Set_Quantity(ID, NewNum:float):
+    """
+    Updates quantity value of ID
+    """
+
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    target = session.get(DB.Inventory_Item, ID)
+    target.Quantity = NewNum
+
+    session.commit()
+    session.close()
+
+def Set_Threshold(ID, NewNum:float):
+    """
+    Updates Threshold of ID
+    """
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    target = session.get(DB.Inventory_Item, ID)
+    target.Threshold = NewNum
+
+    session.commit()
+    session.close()
+
+# GETTERS
+def Get_All_Items() -> list[DB.Inventory_Item]:
+
+    """
+    Returns an <Inventory_Item> list containing all current items in the inventory database.
+    """
+
+    #Creates DB session
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    #Fetches all items
+    result = session.scalars(DB.select(DB.Inventory_Item).order_by(DB.Inventory_Item.ID)).all()
+
+    #Closes Session
+    session.close()
+
+    #Returns Result
+    return result
+
+def Get_Item_By_ID(ID:int) -> DB.Inventory_Item:
+    """
+    Returns Inventory_Item with matching ID from Database
+
+    Returns None if ID not found
+    """
+    #Creates DB session
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+
+    try: # Probably a better way of doing this.
+        result = session.scalars(DB.select(DB.Inventory_Item).filter(DB.Inventory_Item.ID == ID)).one()
+    except:
+        result = None
+
+    #Closes Session
+    session.close()
+
+    return result
+
+def Get_Item_By_Name(Name:str) -> DB.Inventory_Item:
+    """
+    Returns Inventory_Item with matching Name from Database
+
+    Returns None if Name not found
+    """
+    #Creates DB session
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    try:
+        result = session.scalars(DB.select(DB.Inventory_Item).filter(DB.Inventory_Item.Name == Name)).one()
+    except:
+        result = None
+
+    #Closes Session
+    session.close()
+
+    return result
+
+def Get_All_Below_Threshold() -> list[DB.Inventory_Item]:
+    """
+    Returns all items with quantities below threshold.
+    """
+
+    #Creates DB session
+    Session = DB.sessionmaker(bind=DB.engine)
+    session = Session()
+
+    result = session.scalars(DB.select(DB.Inventory_Item).order_by(DB.Inventory_Item.ID).filter(DB.Inventory_Item.Quantity <= DB.Inventory_Item.Threshold)).all()
+
+    #Closes DB session
+    session.close()
+
+    return result
