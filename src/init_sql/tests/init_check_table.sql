@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS init_check_table (name text, value integer, PRIMARY KEY (name));
