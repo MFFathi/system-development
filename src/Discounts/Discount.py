@@ -1,15 +1,56 @@
-# Author: Mohamed Elafifi
-"""Module for managing specifc discounts."""
-from decimal import Decimal
-from src.utils.errors import InputError
-from ..utils.Database import Database
-from .utils import validate_description
 
+import sys
+sys.path.append(r'C:\Users\User\Desktop\System Development\System-Development\src\Discounts')
+sys.path.append(r'C:\Users\User\Desktop\System Development\System-Development\src\Databases')
+
+from tkinter import *
+from tkcalendar import *
+import tkinter as tk
+from tkinter import ttk, messagebox
+#from Discounts.Discounts import Discount
+#from Discounts.utils import validate_description
+#from Discounts.utils import validate_description
+from Databases.Databases import Databases
 
 class Discount:
+    
+    def __init__(self, root):
+        pass
+
+
+    def createDiscount(description, multiplier):
+
+        # Create discount in the database
+        database = Databases.getDatabase("Bristol")
+        cursor = database.cursor()
+
+        cursor.execute(
+            "INSERT INTO discounts (description, multiplier) VALUES (%s, %s)",
+            (description, multiplier)
+        )
+        database.commit()
+        cursor.close()
+
+        messagebox.showinfo("Success", "Discount created successfully")
+        self.back()
+
+    def edit_discount(self):
+        discount_id = tk.simpledialog.askstring("Edit Discount", "Enter Discount ID:")
+        if discount_id:
+            self.discount_id = discount_id
+            self.create_discount()  # Reuse the create discount interface for editing
+
+    def delete_discount(self):
+        discount_id = tk.simpledialog.askstring("Delete Discount", "Enter Discount ID:")
+        if discount_id:
+            # Delete the discount from the database
+            discount = Discount(discount_id)
+            discount.delete()
+            messagebox.showinfo("Success", "Discount deleted successfully")
+            
     """Class for mananging specfic discounts."""
 
-    def __init__(self, discount_id: str) -> None:
+    def _init_(self, discount_id: str) -> None:
         """Don't call outside of BranchDiscounts."""
         self._discount_id = discount_id
 
@@ -17,25 +58,33 @@ class Discount:
         """Get ID."""
         return self._discount_id
 
-    def get_description(self) -> str:
+    def get_description():
+        database = Databases.getDatabase("Bristol")
         """Get description."""
-        description = Database.execute_and_fetchone(
-            "SELECT description FROM public.discounts WHERE id= %s",
-            self._discount_id)
+        mycursor = database.cursor()
+        mycursor.execute("SELECT description FROM discounts")
+        description = mycursor.fetchall()
+        #return discount
+        #for x in description:print(x)
+        return description
 
-        assert description is not None
-        return description[0]
 
-    def get_multiplier(self) -> float:
-        """Get multiplier."""
-        multiplier = Database.execute_and_fetchone(
-            "SELECT multiplier FROM public.discounts WHERE id= %s",
-            self._discount_id)
 
-        assert multiplier is not None
+    def get_multiplier(description):
+        database = Databases.getDatabase("Bristol")
+        """Get description."""
+        mycursor = database.cursor()
+        sql = "SELECT multiplier FROM discounts where description = %s"
+        val = (description,)
+        mycursor.execute(sql,val)
+        multiplier = mycursor.fetchall()
+        #return discount
+        #for x in multiplier:print(x)
+        #multiplier_dec = multiplier[0]
+        #return float(multiplier)
+        return multiplier
 
-        multiplier_dec: Decimal = multiplier[0]
-        return float(multiplier_dec)
+        
 
     def set_description(self, description: str) -> None:
         """Set description."""
@@ -68,3 +117,11 @@ class Discount:
         ActiveUser.get().raise_without_permission("discount.delete")
 
         Database.execute_and_commit(sql, self._discount_id)
+
+    def back(self):
+        for widget in self.widgets:
+            widget.pack_forget()
+        self.widgets = []
+        # Go back to main menu or previous GUI
+        # Example: MainMenuGUI(self.root)
+
