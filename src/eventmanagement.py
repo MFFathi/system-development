@@ -1,3 +1,58 @@
+from struct import pack
+from tkinter import *
+import tkinter as tk
+from tkinter import ttk
+from tkcalendar import *
+from datetime import datetime
+from tkinter import messagebox
+'''
+class Events():
+    
+    def __init__(self,credentials,branch,database,root):
+        
+        events_label = ttk.Label(root,text="Events",font=("Arial", 28))
+
+        create_event_button = ttk.Button(root,text="Create Event",width=50)
+        read_events_button = ttk.Button(root,text="Read Events",width=50)
+        update_event_button = ttk.Button(root,text="Update Event",width=50)
+        delete_event_button = ttk.Button(root,text="Delete Event",width=50)
+        back_button = ttk.Button(root,text="Back",command=lambda : self.back(widgets,credentials,branch,database,root),width=50) 
+
+        events_label.pack()
+        create_event_button.pack()
+        read_events_button.pack()
+        update_event_button.pack()
+        delete_event_button.pack()
+        back_button.pack()
+        
+        widgets = [events_label,
+                   create_event_button,
+                   read_events_button,
+                   update_event_button,
+                   delete_event_button,
+                   back_button]
+
+    def back(self,widgets,credentials,branch,database,root):
+        
+        for x in widgets:
+             x.pack_forget()
+             
+        if credentials[3] == "Admin":
+            from ADMIN.AdminGUI import ADMIN
+            ADMIN(credentials,branch,database,root) 
+        elif credentials[3] == "Manager":
+            from MANAGER.ManagerGUI import MANAGER
+            MANAGER(credentials,branch,database,root)
+        elif credentials[3] == "Director":
+            from DIRECTOR.DirectorGUI import DIRECTOR
+            DIRECTOR(credentials,branch,database,root) 
+        elif credentials[3] == "Chef":
+            from CHEF.ChefGUI import CHEF
+            CHEF(credentials,branch,database,root)
+        elif credentials[3] == "Staff":
+            from STAFF.StaffGUI import STAFF
+            STAFF(credentials,branch,database,root) 
+'''
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import mysql.connector
@@ -12,9 +67,9 @@ class EventManagementPage(tk.Tk):
 
         self.connection = mysql.connector.connect(
             host="127.0.0.1",
-            user="root",
-            password="Koko2010",
-            database="SD_db"
+            user="Francis",
+            password="@Deadmaul/951*",
+            database="horizon_restaurant_bristol"
         )
         self.cursor = self.connection.cursor()
 
@@ -124,7 +179,7 @@ class EventManagementPage(tk.Tk):
             messagebox.showerror("Error", "Date of Event must be after the current date.")
             return
         # This is to insert the data into events table- 22066867
-        query = "INSERT INTO events (EventName, EventDescription, DateOfEvent, StartTime, EndTime, EventType, PhoneNumber, Email, Address, EventStatus) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO events (EventName, EventDescription, date, start_time, end_time, type, phone_number, email, address, EventStatus) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (name, description, date, start_time, end_time, event_type, phone, email, address, status)
 
         try:
@@ -138,16 +193,16 @@ class EventManagementPage(tk.Tk):
         view_events_window = tk.Toplevel(self)
         view_events_window.title("View and Modify Status of Events")
         view_events_window.geometry("800x400") 
-        events_treeview = ttk.Treeview(view_events_window, columns=("EventName", "EventDescription", "DateOfEvent", "StartTime", "EndTime", "EventType", "PhoneNumber", "Email", "Address", "EventStatus"))
+        events_treeview = ttk.Treeview(view_events_window, columns=("EventName", "EventDescription", "date", "start_time", "end_time", "type", "phone_number", "email", "address", "EventStatus"))
         events_treeview.heading("EventName", text="Event Name")
         events_treeview.heading("EventDescription", text="Event Description")
-        events_treeview.heading("DateOfEvent", text="Date of Event")
-        events_treeview.heading("StartTime", text="Start Time")
-        events_treeview.heading("EndTime", text="End Time")
-        events_treeview.heading("EventType", text="Event Type")
-        events_treeview.heading("PhoneNumber", text="Phone Number")
-        events_treeview.heading("Email", text="Email")
-        events_treeview.heading("Address", text="Address")
+        events_treeview.heading("date", text="Date of Event")
+        events_treeview.heading("start_time", text="Start Time")
+        events_treeview.heading("end_time", text="End Time")
+        events_treeview.heading("type", text="Event Type")
+        events_treeview.heading("phone_number", text="Phone Number")
+        events_treeview.heading("email", text="Email")
+        events_treeview.heading("address", text="Address")
         events_treeview.heading("EventStatus", text="Event Status")
 
         events_treeview.pack(padx=10, pady=10)
@@ -155,7 +210,7 @@ class EventManagementPage(tk.Tk):
         modify_status_button = tk.Button(view_events_window, text="Modify Status", command=lambda: self.modify_event_status(events_treeview), background="#0000FF", fg="white", font=('Consolas', 10, 'bold'), width=15, height=2, bd=0, cursor="hand2")
         modify_status_button.pack(pady=10)
 
-        query = "SELECT EventName, EventDescription, DateOfEvent, StartTime, EndTime, EventType, PhoneNumber, Email, Address, EventStatus FROM events"
+        query = "SELECT EventName, EventDescription, date, start_time, end_time, type, phone_number, email, address, EventStatus, id FROM events"
         self.cursor.execute(query)
         events = self.cursor.fetchall()
 
@@ -172,13 +227,31 @@ class EventManagementPage(tk.Tk):
             messagebox.showerror("Error", "Please select an event.")
             return
 
-        event_id = events_treeview.item(selected_item, "tags")[0]
+        for i in events_treeview.selection():
+            event_id = events_treeview.item(i)['values'][10]
 
-        current_status_query = "SELECT EventStatus FROM events WHERE EventID = %s"
+        current_status_query = "SELECT EventStatus FROM events WHERE id = %s"
         self.cursor.execute(current_status_query, (event_id,))
         current_status = self.cursor.fetchone()[0]
 
-        new_status = simpledialog.askstring("Edit Status", f"Current Status: {current_status}\nPlease enter the new status:")
+        # This is to create a Combobox for selecting the new status- 22066867
+        statusChange = Tk()
+        statusChange.title("Change Event Stauts")
+        statusChange.geometry("250x250")
+        status_label = ttk.Label(statusChange,text="Change Status")
+        status_label.pack()
+        status_options = ["Accept", "No Action taken yet", "Finished", "Cancelled", "Reject"]
+        new_status_combo = ttk.Combobox(statusChange, values=status_options)
+        new_status_combo.current(status_options.index(current_status))
+        new_status_combo.pack()
+        confirm_button = ttk.Button(statusChange,text="Confirm Modification",command=lambda:self.confirm_modification(new_status_combo,event_id,events_treeview,statusChange))
+        confirm_button.pack()
+
+        #self.wait_window(new_status_combo)
+
+        # This is to get the selected status- 22066867
+        new_status = new_status_combo.get()
+
         # To validate the entered status- 22066867
         allowed_statuses = ["Accept", "No Action taken yet", "Finished", "Cancelled", "Reject"]
 
@@ -189,18 +262,22 @@ class EventManagementPage(tk.Tk):
         if not new_status:
             return  
 
-        update_status_query = "UPDATE events SET EventStatus = %s WHERE EventID = %s"
-        self.cursor.execute(update_status_query, (new_status, event_id))
+    def confirm_modification(self,new_status_combo,event_id,events_treeview,statusChange):
+        print("New = ",new_status_combo.get())
+        update_status_query = "UPDATE events SET EventStatus = %s WHERE id = %s"
+        self.cursor.execute(update_status_query, (new_status_combo.get(), event_id))
         self.connection.commit()
 
-        self.events_dict[event_id] = (event_id, self.events_dict[event_id][1], self.events_dict[event_id][2], self.events_dict[event_id][3], new_status)
+        #self.events_dict[event_id] = (event_id, self.events_dict[event_id][1], self.events_dict[event_id][2], self.events_dict[event_id][3], new_status)
 
         events_treeview.delete(*events_treeview.get_children())
 
         for event_id, values in self.events_dict.items():
             events_treeview.insert("", "end", iid=values[0], tags=(values[0],), values=values[1:])
 
-        messagebox.showinfo("Success", "Status has been updated successfully.")
+        messagebox.showinfo("Success", "Status has been updated successfully.")
+        statusChange.destroy()
+        self.modify_event_status(events_treeview)
 
     def validate_email(self, email):
         # This is to check if "@" sign is present in the email address- 22066867
