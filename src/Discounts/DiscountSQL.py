@@ -32,13 +32,9 @@ class Discount:
         cursor.close()
 
         messagebox.showinfo("Success", "Discount created successfully")
-        self.back()
 
-    def edit_discount(self):
+    def edit_discount(newDiscountInfo, branch):
         discount_id = tk.simpledialog.askstring("Edit Discount", "Enter Discount ID:")
-        if discount_id:
-            self.discount_id = discount_id
-            self.create_discount()  # Reuse the create discount interface for editing
 
     def delete_discount(self):
         discount_id = tk.simpledialog.askstring("Delete Discount", "Enter Discount ID:")
@@ -84,39 +80,36 @@ class Discount:
         #return float(multiplier)
         return multiplier
 
-        
 
-    def set_description(self, description: str) -> None:
+    def set_description(original, description: str) -> None:
         """Set description."""
-        if not validate_description(description):
-            raise InputError("Invalid description.")
+        database = Databases.getDatabase("Bristol")
+        mycursor = database.cursor()
+        sql = "UPDATE discounts SET description = %s WHERE description = %s"
+        val = (description,original,)
+        mycursor.execute(sql,val)
+        Databases.bristol_db.commit()
 
-        Database.execute_and_commit(
-            "UPDATE public.discounts SET description = %s WHERE id = %s",
-            description, self._discount_id)
-
-    def set_multiplier(self, multiplier: float) -> None:
+    def set_multiplier(original, multiplier: float) -> None:
         """Set multiplier."""
-        Database.execute_and_commit(
-            "UPDATE public.discounts SET multiplier = %s WHERE id = %s",
-            multiplier, self._discount_id)
+        database = Databases.getDatabase("Bristol")
+        mycursor = database.cursor()
+        sql = "UPDATE discounts SET multiplier = %s WHERE description = %s"
+        val = (multiplier,original,)
+        mycursor.execute(sql,val)
+        Databases.bristol_db.commit()
 
-    def delete(self) -> None:
+    def delete(description,multiplier) -> None:
         """
         Delete the discount from the database.
-
-        After calling you should immediately discard this object. Not doing so
-        will cause errors.
-
-        :raises PermissionError: If the current user does not have permission
         """
-        # Could cause issues with references, might be best to switch to soft
-        # deletion and a cron job
-        sql = "DELETE FROM public.discounts WHERE id=%s;"
+        database = Databases.getDatabase("Bristol")
+        mycursor = database.cursor()
+        sql = "DELETE FROM discounts WHERE multiplier = %s AND description = %s"
+        val = (multiplier,description,)
+        mycursor.execute(sql,val)
+        Databases.bristol_db.commit()
 
-        ActiveUser.get().raise_without_permission("discount.delete")
-
-        Database.execute_and_commit(sql, self._discount_id)
 
     def back(self):
         for widget in self.widgets:
